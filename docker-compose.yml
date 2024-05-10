@@ -1,0 +1,152 @@
+services:
+
+  #  nginx:
+  #    build:
+  #      context: nginx
+  #      dockerfile: Dockerfile
+  #    restart: always
+  #    env_file:
+  #      - nginx/.env
+  #    ports:
+  #      - 443:443
+  #    volumes:
+  #      - static_volume:/usr/src/app/static
+  #      - media_volume:/usr/src/app/media
+  #      - ./ssl:/usr/src/app/ssl:ro
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - 15672:15672
+      - 5672:5672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+  order_db:
+    image: postgres:15-alpine3.19
+    restart: always
+    env_file:
+      - order_service/.env
+    volumes:
+      - orders_db_data:/var/lib/postgresql/data
+    ports:
+      - 5434:5432
+
+  inventory_db:
+    image: postgres:15-alpine3.19
+    restart: always
+    env_file:
+      - inventory_service/.env
+    volumes:
+      - inventory_db_data:/var/lib/postgresql/data
+    ports:
+      - 5435:5432
+
+  users_db:
+    image: postgres:15-alpine3.19
+    restart: always
+    env_file:
+      - user_service/.env
+    volumes:
+      - users_db_data:/var/lib/postgresql/data
+    ports:
+      - 5436:5432
+
+  order_service:
+    build: ./order_service
+    command: >
+      sh -c "
+      poetry run python manage.py collectstatic --noinput && \
+      poetry run python manage.py migrate && \
+      poetry run gunicorn order_service.wsgi:application --bind 0.0.0.0:8000 --worker-class gevent --reload
+      "
+    restart: always
+    ports:
+      - 8001:8000
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      POSTGRES_HOST: order_db
+      POSTGRES_PORT: 5432
+    depends_on:
+      - order_db
+      - rabbitmq
+    volumes:
+      # DEVELOPMENT BIND MOUNT OPTIONS FOR APPS
+      - ./order_service/:/usr/src/app
+
+      - order_service_static_volume:/usr/src/app/static
+      - order_service_media_volume:/usr/src/app/media
+    env_file:
+      - order_service/.env
+
+  inventory_service:
+    build: ./inventory_service
+    command: >
+      sh -c "
+      poetry run python manage.py collectstatic --noinput && \
+      poetry run python manage.py migrate && \
+      poetry run gunicorn inventory_service.wsgi:application --bind 0.0.0.0:8000 --worker-class gevent --reload
+      "
+    restart: always
+    ports:
+      - 8002:8000
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      POSTGRES_HOST: inventory_db
+      POSTGRES_PORT: 5432
+    depends_on:
+      - inventory_db
+      - rabbitmq
+    volumes:
+      # DEVELOPMENT BIND MOUNT OPTIONS FOR APPS
+      - ./inventory_service/:/usr/src/app
+
+      - inventory_service_static_volume:/usr/src/app/static
+      - inventory_service_media_volume:/usr/src/app/media
+    env_file:
+      - inventory_service/.env
+
+  user_service:
+    build: ./user_service
+    command: >
+      sh -c "
+      poetry run python manage.py collectstatic --noinput && \
+      poetry run python manage.py migrate && \
+      poetry run gunicorn user_service.wsgi:application --bind 0.0.0.0:8000 --worker-class gevent --reload
+      "
+    restart: always
+    ports:
+      - 8003:8000
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      POSTGRES_HOST: users_db
+      POSTGRES_PORT: 5432
+    depends_on:
+      - users_db
+      - rabbitmq
+    volumes:
+      # DEVELOPMENT BIND MOUNT OPTIONS FOR APPS
+      - ./user_service/:/usr/src/app
+
+      - user_service_static_volume:/usr/src/app/static
+      - user_service_media_volume:/usr/src/app/media
+    env_file:
+      - user_service/.env
+
+volumes:
+  rabbitmq_data:
+  orders_db_data:
+  inventory_db_data:
+  users_db_data:
+  user_service_static_volume:
+  user_service_media_volume:
+  order_service_static_volume:
+  order_service_media_volume:
+  inventory_service_static_volume:
+  inventory_service_media_volume:
