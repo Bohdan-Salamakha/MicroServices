@@ -24,7 +24,7 @@ services:
     image: rabbitmq:3.13-management-alpine
     ports:
       - 15672:15672
-      - 5672:5672
+      - 5673:5672
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
@@ -71,6 +71,7 @@ services:
       - 8001:8000
     environment:
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
       POSTGRES_HOST: order_db
       POSTGRES_PORT: 5432
     depends_on:
@@ -98,6 +99,7 @@ services:
       - 8002:8000
     environment:
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
       POSTGRES_HOST: inventory_db
       POSTGRES_PORT: 5432
     depends_on:
@@ -125,6 +127,7 @@ services:
       - 8003:8000
     environment:
       RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
       POSTGRES_HOST: users_db
       POSTGRES_PORT: 5432
     depends_on:
@@ -144,12 +147,13 @@ services:
       context: ./user_service
       dockerfile: Dockerfile
     command: >
-      sh -c "poetry run celery -A user_service worker --loglevel=info"
+      sh -c "poetry run celery -A user_service worker --loglevel=info -Q check_user_queue"
     restart: always
     environment:
-      - RABBITMQ_HOST=rabbitmq
-      - POSTGRES_HOST=users_db
-      - POSTGRES_PORT=5432
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      POSTGRES_HOST: users_db
+      POSTGRES_PORT: 5432
     depends_on:
       - users_db
       - rabbitmq

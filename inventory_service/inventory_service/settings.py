@@ -152,8 +152,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 
 # RabbitMQ Configuration
-RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST')
-RABBITMQ_PORT = os.environ.get('RABBITMQ_PORT')
+RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST', 'localhost')
+RABBITMQ_PORT = os.environ.get('RABBITMQ_PORT', '5673')
 RABBITMQ_USERNAME = os.environ.get('RABBITMQ_USERNAME')
 RABBITMQ_PASSWORD = os.environ.get('RABBITMQ_PASSWORD')
 
