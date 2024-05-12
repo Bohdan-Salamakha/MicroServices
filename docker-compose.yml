@@ -139,6 +139,28 @@ services:
     env_file:
       - user_service/.env
 
+  user_service_celery_worker:
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    command: >
+      sh -c "poetry run celery -A user_service worker --loglevel=info"
+    restart: always
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - POSTGRES_HOST=users_db
+      - POSTGRES_PORT=5432
+    depends_on:
+      - users_db
+      - rabbitmq
+    volumes:
+      - ./user_service/:/usr/src/app
+      - user_service_static_volume:/usr/src/app/static
+      - user_service_media_volume:/usr/src/app/media
+    env_file:
+      - user_service/.env
+
+
 volumes:
   rabbitmq_data:
   orders_db_data:
