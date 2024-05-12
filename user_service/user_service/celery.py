@@ -8,8 +8,15 @@ app = Celery("user_service")
 
 app.config_from_object("django.conf:settings", namespace="CELERY")
 
+app.conf.task_queues = {
+    'check_user_queue': {
+        'exchange': 'order_service_exchange',
+        'routing_key': 'check_user_key',
+    },
+}
+
 app.conf.task_routes = {
-    'user_service.tasks.check_user_exists': {'queue': 'check_user_queue'},
+    'users.tasks.check_user_exists': {'queue': 'check_user_queue'},
 }
 
 app.autodiscover_tasks()

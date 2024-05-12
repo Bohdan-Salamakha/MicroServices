@@ -40,8 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # my apps
-    'orders.apps.OrdersConfig',
-    'orders.apps.RabbitMQConfig',
+    'orders',
     # other apps
     'drf_yasg',
     'rest_framework',

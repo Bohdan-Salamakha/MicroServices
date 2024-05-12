@@ -40,7 +40,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # my apps
     'users.apps.UsersConfig',
-    'users.apps.RabbitMQConfig',
     # other apps
     'drf_yasg',
     'rest_framework',
