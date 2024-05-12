@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     # other apps
     'drf_yasg',
     'rest_framework',
+    'django_lifecycle_checks',
 ]
 
 MIDDLEWARE = [

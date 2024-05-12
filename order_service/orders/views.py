@@ -26,7 +26,7 @@ class OrderHistoryView(generics.ListAPIView):
     serializer_class = OrderSerializer
 
     def get_queryset(self):
-        return self.queryset.objects.filter(user__pk=self.kwargs.get('user_pk'))
+        return self.queryset.objects.filter(user__id=self.kwargs.get('user_id'))
 
 
 class LogoutView(generics.GenericAPIView):
